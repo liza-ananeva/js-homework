@@ -22,9 +22,9 @@ function isAllTrue(array, fn) {
     } else if (typeof fn != 'function') {
         throw new Error('fn is not a function');
     } else {
-        for (let eachItem in array) {
+        for (let item of array) {
 
-            if (!fn(array[eachItem])) {
+            if (!fn(item)) {
                 return false;
             }
         }
@@ -55,9 +55,9 @@ function isSomeTrue(array, fn) {
     } else if (typeof fn != 'function') {
         throw new Error('fn is not a function');
     } else {
-        for (let eachItem in array) {
+        for (let item of array) {
 
-            if (fn(array[eachItem])) {
+            if (fn(item)) {
                 return true;
             }
         }
