@@ -9,7 +9,7 @@
 
 /*
  homeworkContainer - это контейнер для всех ваших домашних заданий
- Если вы создаете новые html-элементы и добавляете их на страницу, то дабавляйте их только в этот контейнер
+ Если вы создаете новые html-элементы и добавляете их на страницу, то добавляйте их только в этот контейнер
 
  Пример:
    const newDiv = document.createElement('div');
@@ -27,6 +27,31 @@ const homeworkContainer = document.querySelector('#homework-container');
    homeworkContainer.appendChild(newDiv);
  */
 function createDiv() {
+    const div = document.createElement('div');
+
+    div.className = 'draggable-div';
+    // random sizes
+    let width = Math.floor(Math.random() * document.documentElement.clientWidth);
+    let height = Math.floor(Math.random() * document.documentElement.clientHeight);
+
+    div.style.width = width + 'px';
+    div.style.height = height + 'px';
+    // random background
+    let r = Math.floor(Math.random() * 256);
+    let g = Math.floor(Math.random() * 256);
+    let b = Math.floor(Math.random() * 256);
+    let color = 'rgb(' + r + ',' + g + ',' + b + ')';
+
+    div.style.background = color;
+    // random position
+    let top = Math.floor(Math.random() * (document.documentElement.clientHeight - height));
+    let left = Math.floor(Math.random() * (document.documentElement.clientWidth - width));
+
+    div.style.position = 'absolute';
+    div.style.top = top + 'px';
+    div.style.left = left + 'px';
+
+    return div;
 }
 
 /*
@@ -38,6 +63,23 @@ function createDiv() {
    addListeners(newDiv);
  */
 function addListeners(target) {
+    target.draggable = true;
+
+    let shiftX, shiftY;
+
+    target.addEventListener('dragstart', (event) => {
+        let coords = target.getBoundingClientRect();
+        
+        shiftX = event.pageX - coords.left;
+        shiftY = event.pageY - coords.top;
+    });
+    target.addEventListener('dragend', (event) => {
+        target.style.left = event.pageX - shiftX + 'px';
+        target.style.top = event.pageY - shiftY + 'px';
+    });
+    document.addEventListener('dragover', (event) => {
+        event.preventDefault();
+    });
 }
 
 let addDivButton = homeworkContainer.querySelector('#addDiv');
