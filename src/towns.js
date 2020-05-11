@@ -37,6 +37,12 @@ const homeworkContainer = document.querySelector('#homework-container');
  https://raw.githubusercontent.com/smelukov/citiesTest/master/cities.json
  */
 function loadTowns() {
+    return (async () => {
+        let response = await fetch('https://raw.githubusercontent.com/smelukov/citiesTest/master/cities.json');
+        let towns = await response.json();
+
+        return towns.sort((a, b) => a.name > b.name ? 1 : -1);
+  })()
 }
 
 /*
@@ -51,6 +57,8 @@ function loadTowns() {
    isMatching('Moscow', 'Moscov') // false
  */
 function isMatching(full, chunk) {
+    let regexp = new RegExp(chunk, 'i');
+    return regexp.test(full);
 }
 
 /* Блок с надписью "Загрузка" */
@@ -62,8 +70,61 @@ const filterInput = homeworkContainer.querySelector('#filter-input');
 /* Блок с результатами поиска */
 const filterResult = homeworkContainer.querySelector('#filter-result');
 
-filterInput.addEventListener('keyup', function() {
+let towns = [];
+
+function loadData() {
+    return (async () => {
+        loadingBlock.innerText = 'Загрузка...';
+        towns = await loadTowns();
+        loadingBlock.style.color = 'transparent';
+        filterBlock.style.display = 'block';
+    })()
+}
+
+document.addEventListener('DOMContentLoaded', async (event) => {
+    try {
+        await loadData();
+    } catch {
+        loadingBlock.innerText = 'Не удалось загрузить города';
+        
+        let button = document.createElement('button');
+        
+        button.id = 'reload';
+        button.innerText = 'Повторить';
+        homeworkContainer.appendChild(button);
+
+        button.addEventListener('click', async (event) => {
+            try {
+                await loadData();
+                homeworkContainer.querySelector('#reload').remove();
+            } catch(error) {
+                loadingBlock.innerText = 'Не удалось загрузить города';
+            }
+        })
+    }
+});
+
+filterInput.addEventListener('keyup', (event) => {
     // это обработчик нажатия кливиш в текстовом поле
+    let chunk = event.target.value;
+    
+    filterResult.innerHTML = '';
+    
+    if (chunk) {
+        let fragment = document.createDocumentFragment();
+        
+        for (let town of towns) {
+            if (isMatching(town.name, chunk)) {
+                let div = document.createElement('div');
+                
+                div.innerText = town.name;
+                fragment.appendChild(div);
+            }
+        }
+        filterResult.appendChild(fragment);
+    } else {
+        filterResult.innerHTML = '';
+    }
 });
 
 export {
