@@ -43,10 +43,120 @@ const addButton = homeworkContainer.querySelector('#add-button');
 // таблица со списком cookie
 const listTable = homeworkContainer.querySelector('#list-table tbody');
 
+function addTableRow(name, value) {
+    const tdName = document.createElement('td');
+    const tdValue = document.createElement('td');
+    
+    tdName.innerText = name;
+    tdValue.innerText = value;
+
+    const button = document.createElement('button');
+    const tdDelete = document.createElement('td');
+    
+    button.className += 'delete-button';
+    button.innerText = 'Удалить';
+    tdDelete.appendChild(button);
+
+    let fragment = document.createDocumentFragment();
+
+    fragment.appendChild(tdName);
+    fragment.appendChild(tdValue);
+    fragment.appendChild(tdDelete);
+    
+    const tr = document.createElement('tr');
+
+    tr.id = name;
+    tr.appendChild(fragment);
+    listTable.appendChild(tr);
+}
+
+function deleteTableRow(row) {
+    row.parentNode.removeChild(row);
+}
+
+function parseCookies() {
+    return document.cookie.split('; ').reduce((prev, current) => {
+        let [name, value] = current.split('=');
+        
+        if (name != '') {
+            prev[name] = value;
+        }
+
+        return prev;
+    }, {})
+}
+
+function isMatching(full, chunk) {
+    let regexp = new RegExp(chunk, 'i');
+    
+    return regexp.test(full);
+}
+
+let cookies = {};
+
+window.addEventListener('DOMContentLoaded', () => {
+    listTable.innerHTML = '';
+
+    cookies = parseCookies();
+
+    for (let name in cookies) {
+        if (cookies.hasOwnProperty(name)) {
+            addTableRow(name, cookies[name]);
+        }
+    }
+});
+
+listTable.addEventListener('click', (event) => {
+    if (event.target.classList.contains('delete-button')) {
+        let row = event.target.closest('tr');
+        let name = row.id;
+        
+        if (row) {
+            deleteTableRow(row);
+        }
+        document.cookie = `${name}=''; max-age=0`;
+    }
+});
+
 filterNameInput.addEventListener('keyup', function() {
     // здесь можно обработать нажатия на клавиши внутри текстового поля для фильтрации cookie
+    let filter = filterNameInput.value;
+    
+    listTable.innerHTML = '';
+    cookies = parseCookies();
+
+    for (let name in cookies) {
+        if (isMatching(name, filter) || isMatching(cookies[name], filter)) {
+            if (cookies.hasOwnProperty(name)) {
+                addTableRow(name, cookies[name]);
+            }
+        }
+    }
 });
 
 addButton.addEventListener('click', () => {
     // здесь можно обработать нажатие на кнопку "добавить cookie"
+    let name = addNameInput.value;
+    let value = addValueInput.value;
+
+    cookies = parseCookies();
+
+    let filter = filterNameInput.value;
+
+    if (cookies.hasOwnProperty(name) && !isMatching(filter, value)) {
+        // let row = document.querySelector(`#${name}`);
+        let row = document.getElementById(name);
+        
+        if (row) {
+            deleteTableRow(row);
+        }
+    }
+        
+    if (isMatching(name, filter) || isMatching(value, filter)) {
+        addTableRow(name, value);
+    }
+    
+    if (name) {
+        document.cookie = `${name}=${value}`;
+    }
 });
